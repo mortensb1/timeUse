@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {Button, Container, Typography} from "@mui/material";
+import supabase from '../utils/supabase'
 import './App.css'
 
 function App() {
