@@ -4,24 +4,30 @@ import supabase from '../utils/supabase'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   async function uploadTime(amount_people: number, hours: number) {
     const { error } = await supabase
       .from("time")
-      .insert({ time_used: 10 })
+      .insert({ time_used: hours, people: amount_people })
     if (error) {
       console.log("ERROR:", error)
     }
-    const { data } = await supabase
+  }
+
+  async function getValues() {
+    const { error, data } = await supabase
       .from("time")
       .select()
-    console.log(data)
+
+    if (error) {
+      console.log("Error:", error)
+    }
+
+    return data
   }
 
   return (
     <Container sx={{ textAlign: "center", mt: 5 }}>
-      <Typography variant="body1">Count: {count}</Typography>
+      <Typography variant="body1">Count: </Typography>
       <Button
         variant="contained"
         color="primary"
