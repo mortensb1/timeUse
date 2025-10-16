@@ -1,6 +1,7 @@
 // import { useState } from 'react'
 import * as React from "react";
-import { DesktopTimePicker } from "@mui/x-date-pickers";
+import { DesktopTimePicker } from "@mui/x-date-pickers/DesktopTimePicker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
@@ -22,6 +23,7 @@ function App() {
   const [timeStart, setTimeStart] = React.useState<Dayjs | null>();
   const [timeEnd, setTimeEnd] = React.useState<Dayjs | null>();
   const [amountPeople, setAmountPeople] = React.useState<number>();
+  const [selectedDate, setSelectedDate] = React.useState<Dayjs | null>(dayjs());
 
   const [values, setValues] = React.useState<any[] | null>(null);
 
@@ -37,7 +39,7 @@ function App() {
   async function uploadTime() {
     const { error } = await supabase
       .from("time")
-      .insert({ hours_used: Number(timeEnd?.diff(timeStart, 'minute'))/60, people: amountPeople, time_start: timeStart, time_end: timeEnd })
+      .insert({ hours_used: Number(timeEnd?.diff(timeStart, 'minute'))/60, people: amountPeople, time_start: timeStart, time_end: timeEnd, date: selectedDate })
     if (error) {
       console.log("ERROR:", error)
     }
@@ -71,6 +73,12 @@ function App() {
             textAlign: "center",
             }}>Trænings tid</Typography>
         <Container sx={{ textAlign: "center", mt: 1 }}>
+          <DatePicker
+          label="Select Date"
+          value={selectedDate}
+          onChange={(newDate) => setSelectedDate(newDate)}
+          sx={{ mt: 2 }}
+        />
           <Container>
             <DesktopTimePicker 
               label="Start tid" 
