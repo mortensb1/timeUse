@@ -22,8 +22,11 @@ import './App.css'
 function App() {
   const [timeStart, setTimeStart] = React.useState<Dayjs | null>();
   const [timeEnd, setTimeEnd] = React.useState<Dayjs | null>();
-  const [amountPeople, setAmountPeople] = React.useState<number>();
   const [selectedDate, setSelectedDate] = React.useState<Dayjs | null>(dayjs());
+  const [amountPeople04, setAmountPeople04] = React.useState<number>();
+  const [amountPeople517, setAmountPeople517] = React.useState<number>();
+  const [amountPeople1824, setAmountPeople1824] = React.useState<number>();
+  const [amountPeopleOver, setAmountPeopleOver] = React.useState<number>();
 
   const [values, setValues] = React.useState<any[] | null>(null);
 
@@ -39,13 +42,21 @@ function App() {
   async function uploadTime() {
     const { error } = await supabase
       .from("time")
-      .insert({ hours_used: Number(timeEnd?.diff(timeStart, 'minute'))/60, people: amountPeople, time_start: timeStart, time_end: timeEnd, date: selectedDate })
+      .insert({ 
+        hours_used: Number(timeEnd?.diff(timeStart, 'minute'))/60, 
+        people_0_4: amountPeople04, 
+        people_5_17: amountPeople517, 
+        people_18_24: amountPeople1824, 
+        people_over: amountPeopleOver, 
+        time_start: timeStart, 
+        time_end: timeEnd, 
+        date: selectedDate })
     if (error) {
       console.log("ERROR:", error)
     }
 
     var data = await getValues()
-    console.log(data)
+    setValues(data);
   }
 
   async function getValues(): Promise<any[] | null> {
@@ -60,8 +71,6 @@ function App() {
     }
     return data
   }
-
-  // const data = await getValues()
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -99,26 +108,49 @@ function App() {
               }}
             />
           </Container>
+              <Typography variant="h6" sx={{ mt: 3, mb: 3, textAlign: "center" }}>
+                Antal mennesker i aldersgruppe:
+              </Typography>
             <Container>
               <TextField
-              label="Antal mennesker"
+              label="(0-4)"
               type="number"
-              onChange={(e) => setAmountPeople(Number(e.target.value))}
-              sx={{ width: 250 }}
-            />
+              onChange={(e) => setAmountPeople04(Number(e.target.value))}
+              sx={{ width: 80, mb: 2, mr:1 }}
+              />
+              <TextField
+              label="(5-17)"
+              type="number"
+              onChange={(e) => setAmountPeople517(Number(e.target.value))}
+              sx={{ width: 80, mb: 2, mr:1 }}
+              />
+              <TextField
+              label="(18-24)"
+              type="number"
+              onChange={(e) => setAmountPeople1824(Number(e.target.value))}
+              sx={{ width: 80, mb: 2, mr:1 }}
+              />
+              <TextField
+              label="(Over)"
+              type="number"
+              onChange={(e) => setAmountPeopleOver(Number(e.target.value))}
+              sx={{ width: 80 }}
+              />
             </Container>
           <Button
             variant="contained"
             color="primary"
             sx={{ mt: 4 }}
-            onClick={() => uploadTime()}
+            onClick={() => {
+              uploadTime()
+            }}
             >
             Tilføj tid
           </Button>
 
 
           <Typography variant="h4" sx={{ mt: 3, mb: 3, textAlign: "center" }}>
-            Time Entries
+            Tider
           </Typography>
           {/*  */}
           <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3, px:0 }}>
@@ -139,9 +171,9 @@ function App() {
                 <TableCell>{item.id}</TableCell>
                 <TableCell>{dayjs(item.time_start).format("HH:mm")}</TableCell>
                 <TableCell>{dayjs(item.time_end).format("HH:mm")}</TableCell>
-                <TableCell>{item.hours_used}</TableCell>
-                <TableCell>{item.people}</TableCell>
-                <TableCell>{dayjs(item.time_end).format("MM-DD")}</TableCell>
+                <TableCell>{Math.round(Number(item.hours_used)*1000)/1000}</TableCell>
+                <TableCell>{item.people_0_4 + item.people_5_17 + item.people_18_24 + item.people_over}</TableCell>
+                <TableCell>{dayjs(item.time_end).format("DD-MMM")}</TableCell>
               </TableRow>
             ))}
           </TableBody>
