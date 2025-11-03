@@ -47,6 +47,7 @@ function App() {
   async function uploadTime() {
     if (selectedDate == null || timeEnd == null || timeStart == null) {
       console.log("ERROR MISSING SOME VALUES")
+      return
     }
     const { error } = await supabase
       .from("time")
