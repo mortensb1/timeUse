@@ -16,7 +16,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import supabase from '../utils/supabase'
 import './App.css'
@@ -34,6 +38,17 @@ function App() {
   const [values, setValues] = React.useState<any[] | null>(null);
 
   const [timeLock, setTimeLock] = React.useState<Dayjs | null>(dayjs());
+
+  // Edit modal states
+  const [editModalOpen, setEditModalOpen] = React.useState(false);
+  const [editingItem, setEditingItem] = React.useState<any | null>(null);
+  const [editTimeStart, setEditTimeStart] = React.useState<Dayjs | null>(null);
+  const [editTimeEnd, setEditTimeEnd] = React.useState<Dayjs | null>(null);
+  const [editDate, setEditDate] = React.useState<Dayjs | null>(null);
+  const [editPeople04, setEditPeople04] = React.useState<number>(0);
+  const [editPeople517, setEditPeople517] = React.useState<number>(0);
+  const [editPeople1824, setEditPeople1824] = React.useState<number>(0);
+  const [editPeopleOver, setEditPeopleOver] = React.useState<number>(0);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -91,6 +106,52 @@ function App() {
       })
     if (error) {
       console.log("Error with Locking:", error)
+    }
+  }
+
+  function handleEditClick(item: any) {
+    setEditingItem(item);
+    setEditTimeStart(dayjs(item.time_start));
+    setEditTimeEnd(dayjs(item.time_end));
+    setEditDate(dayjs(item.date));
+    setEditPeople04(item.people_0_4 || 0);
+    setEditPeople517(item.people_5_17 || 0);
+    setEditPeople1824(item.people_18_24 || 0);
+    setEditPeopleOver(item.people_over || 0);
+    setEditModalOpen(true);
+  }
+
+  function handleCloseEdit() {
+    setEditModalOpen(false);
+    setEditingItem(null);
+  }
+
+  async function handleUpdateTime() {
+    if (!editingItem || !editDate || !editTimeEnd || !editTimeStart) {
+      console.log("ERROR: Missing some values");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("time")
+      .update({
+        hours_used: Number(editTimeEnd?.diff(editTimeStart, 'minute')) / 60,
+        people_0_4: editPeople04,
+        people_5_17: editPeople517,
+        people_18_24: editPeople1824,
+        people_over: editPeopleOver,
+        time_start: editTimeStart,
+        time_end: editTimeEnd,
+        date: editDate
+      })
+      .eq('id', editingItem.id);
+
+    if (error) {
+      console.log("ERROR:", error);
+    } else {
+      const data = await getValues();
+      setValues(data);
+      handleCloseEdit();
     }
   }
 
@@ -225,7 +286,14 @@ function App() {
               </TableHead>
               <TableBody>
                 {values?.map((item) => (
-                  <TableRow key={item.id}>
+                  <TableRow
+                    key={item.id}
+                    onClick={() => handleEditClick(item)}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: '#f5f5f5' }
+                    }}
+                  >
                     <TableCell>{item.id}</TableCell>
                     <TableCell>{dayjs(item.time_start).format("HH:mm")}</TableCell>
                     <TableCell>{dayjs(item.time_end).format("HH:mm")}</TableCell>
@@ -239,6 +307,79 @@ function App() {
           </TableContainer>
           {/*  */}
         </Container>
+
+        {/* Edit Modal */}
+        <Dialog
+          open={editModalOpen}
+          onClose={handleCloseEdit}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle>Rediger Tid</DialogTitle>
+          <DialogContent>
+            <Container sx={{ pt: 2 }}>
+              <DatePicker
+                label="Dato"
+                value={editDate}
+                onChange={(newDate) => setEditDate(newDate)}
+                sx={{ width: '100%', mb: 2 }}
+              />
+              <MobileDateTimePicker
+                label="Start tid"
+                ampm={false}
+                value={editTimeStart}
+                onChange={(newValue) => setEditTimeStart(newValue)}
+                sx={{ width: '100%', mb: 2 }}
+              />
+              <MobileDateTimePicker
+                label="Slut tid"
+                ampm={false}
+                value={editTimeEnd}
+                onChange={(newValue) => setEditTimeEnd(newValue)}
+                sx={{ width: '100%', mb: 2 }}
+              />
+              <Typography variant="subtitle1" sx={{ mt: 2, mb: 2 }}>
+                Antal mennesker i aldersgruppe:
+              </Typography>
+              <Container sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', px: 0 }}>
+                <TextField
+                  label="(0-4)"
+                  type="number"
+                  value={editPeople04}
+                  onChange={(e) => setEditPeople04(Number(e.target.value))}
+                  sx={{ width: 80 }}
+                />
+                <TextField
+                  label="(5-17)"
+                  type="number"
+                  value={editPeople517}
+                  onChange={(e) => setEditPeople517(Number(e.target.value))}
+                  sx={{ width: 80 }}
+                />
+                <TextField
+                  label="(18-24)"
+                  type="number"
+                  value={editPeople1824}
+                  onChange={(e) => setEditPeople1824(Number(e.target.value))}
+                  sx={{ width: 80 }}
+                />
+                <TextField
+                  label="(Over)"
+                  type="number"
+                  value={editPeopleOver}
+                  onChange={(e) => setEditPeopleOver(Number(e.target.value))}
+                  sx={{ width: 80 }}
+                />
+              </Container>
+            </Container>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseEdit}>Annuller</Button>
+            <Button onClick={handleUpdateTime} variant="contained" color="primary">
+              Gem
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </LocalizationProvider>
   )
