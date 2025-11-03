@@ -229,7 +229,7 @@ function App() {
                     <TableCell>{item.id}</TableCell>
                     <TableCell>{dayjs(item.time_start).format("HH:mm")}</TableCell>
                     <TableCell>{dayjs(item.time_end).format("HH:mm")}</TableCell>
-                    <TableCell>{Math.round(Number(item.hours_used) * 1000) / 1000}</TableCell>
+                    <TableCell>{Math.round(Number(item.hours_used) * 100) / 100}</TableCell>
                     <TableCell>{item.people_0_4 + item.people_5_17 + item.people_18_24 + item.people_over}</TableCell>
                     <TableCell>{dayjs(item.time_end).format("DD-MMM")}</TableCell>
                   </TableRow>
